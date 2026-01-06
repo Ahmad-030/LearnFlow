@@ -152,7 +152,7 @@ class OnboardingScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Color(0xFF0D47A1),
+                  color: Color(0xFF1976D2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -330,7 +330,7 @@ class OnboardingScreen extends StatelessWidget {
           height: width * 0.02,
           decoration: BoxDecoration(
             color: isActive
-                ? Color(0xFF0D47A1)
+                ? Color(0xFF1976D2)
                 : const Color(0xFFD1D5DB),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -351,7 +351,7 @@ class OnboardingScreen extends StatelessWidget {
       width: double.infinity,
       height: isSmallDevice ? 54 : 58,
       decoration: BoxDecoration(
-        color: Color(0xFF0D47A1),
+        color: Color(0xFF1976D2),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Material(
