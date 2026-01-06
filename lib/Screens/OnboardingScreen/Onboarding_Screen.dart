@@ -38,7 +38,7 @@ class OnboardingController extends GetxController with GetTickerProviderStateMix
       );
     } else {
       // Navigate to home or login screen
-      // Get.offAllNamed('/home');
+      Get.offAllNamed('/login');
     }
   }
 
