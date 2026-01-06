@@ -52,8 +52,9 @@ class SplashController extends GetxController with GetSingleTickerProviderStateM
 
     // Navigate to home after 4 seconds
     Future.delayed(const Duration(seconds: 4), () {
-      // Navigate to your onboarding screen using GetX
-      // Get.offNamed('/onboarding');
+
+        Get.offNamed('/onboarding');
+
     });
   }
 
@@ -78,7 +79,6 @@ class SplashScreen extends GetView<SplashController> {
 
     // Responsive sizing
     final isSmallDevice = height < 700;
-    final animationSize = width * (isSmallDevice ? 0.65 : 0.75);
     final titleFontSize = isSmallDevice ? 40.0 : 48.0;
     final subtitleFontSize = isSmallDevice ? 16.0 : 18.0;
     final badgeFontSize = isSmallDevice ? 12.0 : 14.0;
@@ -111,9 +111,9 @@ class SplashScreen extends GetView<SplashController> {
                   child: IntrinsicHeight(
                     child: Column(
                       children: [
-                        SizedBox(height: height * 0.08),
+                        SizedBox(height: height * 0.05),
 
-                        // Lottie Animation with Scale Animation
+                        // Lottie Animation with Scale Animation - Reduced Size
                         AnimatedBuilder(
                           animation: controller.animationController,
                           builder: (context, child) {
@@ -121,8 +121,8 @@ class SplashScreen extends GetView<SplashController> {
                               scale: controller.scaleAnimation,
                               child: Lottie.asset(
                                 'assets/animations/education.json',
-                                width: animationSize,
-                                height: animationSize,
+                                width: size.width * 0.6,
+                                height: size.height * 0.35,
                                 fit: BoxFit.contain,
                                 repeat: true,
                                 animate: true,
@@ -131,7 +131,7 @@ class SplashScreen extends GetView<SplashController> {
                           },
                         ),
 
-                        SizedBox(height: height * 0.04),
+                        SizedBox(height: height * 0.02),
 
                         // App Name with Fade and Slide Animation
                         AnimatedBuilder(
@@ -267,7 +267,7 @@ class SplashScreen extends GetView<SplashController> {
                           },
                         ),
 
-                        SizedBox(height: height * 0.04),
+                        SizedBox(height: height * 0.08),
 
                         // Version Info
                         Padding(

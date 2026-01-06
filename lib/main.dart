@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import 'Screens/OnboardingScreen/Onboarding_Screen.dart';
 import 'Screens/SplashScreen/Splash_Screen.dart';
 import 'Theme/App_Theme.dart';
 
@@ -47,6 +48,11 @@ class LearnFlowApp extends StatelessWidget {
         GetPage(
           name: '/',
           page: () => const SplashScreen(),
+          transition: Transition.fadeIn,
+        ),
+        GetPage(
+          name: '/onboarding',
+          page: () => const OnboardingScreen(),
           transition: Transition.fadeIn,
         ),
         // Add more routes here
