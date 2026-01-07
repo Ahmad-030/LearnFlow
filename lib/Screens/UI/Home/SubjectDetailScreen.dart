@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../Model/SubjectModel.dart';
-import '../../Services/SubjectProgressService.dart';
+import '../../../Model/SubjectModel.dart';
+import '../../../Services/SubjectProgressService.dart';
 
 class SubjectDetailController extends GetxController with GetSingleTickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;

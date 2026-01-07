@@ -3,10 +3,10 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../Model/SubjectModel.dart';
-import '../../Services/CssSubjectService.dart';
-import '../../Services/SubjectProgressService.dart';
-import '../AuthScreens/AuthController.dart';
+import '../../../Model/SubjectModel.dart';
+import '../../../Services/CssSubjectService.dart';
+import '../../../Services/SubjectProgressService.dart';
+import '../../AuthScreens/AuthController.dart';
 
 class HomeController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -91,39 +91,7 @@ class HomeScreen extends StatelessWidget {
         ),
         backgroundColor: const Color(0xFF2196F3),
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: controller.refreshData,
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            tooltip: 'Refresh',
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) {
-              if (value == 'logout') {
-                authController.signOut();
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    const Icon(Icons.logout, color: Color(0xFFEF4444)),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Logout',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: const Color(0xFFEF4444),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+
       ),
       body: Obx(() {
         if (controller.isLoading.value) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:learn_flow/BottomNavigation/MainNavigation.dart';
 
 import 'Screens/AuthScreens/AuthController.dart';
 import 'Screens/AuthScreens/ForgetPassScreen.dart';
@@ -10,8 +11,8 @@ import 'Screens/AuthScreens/SignupScreen.dart';
 import 'Screens/OnboardingScreen/Onboarding_Screen.dart';
 import 'Screens/SplashScreen/Splash_Screen.dart';
 import 'Screens/UI/Enrollment_Screen.dart';
-import 'Screens/UI/HomeScreen.dart';
-import 'Screens/UI/SubjectDetailScreen.dart';
+import 'Screens/UI/Home/SubjectDetailScreen.dart';
+
 import 'Theme/App_Theme.dart';
 import 'firebase_options.dart';
 
@@ -100,8 +101,8 @@ class LearnFlowApp extends StatelessWidget {
           transition: Transition.rightToLeft,
         ),
         GetPage(
-          name: '/home',
-          page: () => const HomeScreen(),
+          name: '/main',
+          page: () => const MainNavigationScreen(),
           transition: Transition.fadeIn,
         ),
         GetPage(

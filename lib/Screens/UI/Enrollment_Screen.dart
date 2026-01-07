@@ -284,8 +284,8 @@ class EnrollmentController extends GetxController with GetTickerProviderStateMix
       );
 
       // Navigate to home after delay
-      Future.delayed(const Duration(seconds: 2), () {
-        Get.offAllNamed('/home');
+      Future.delayed(const Duration(seconds: 1), () {
+        Get.offAllNamed('/main');
       });
     } catch (e) {
       Get.snackbar(
