@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:learn_flow/BottomNavigation/MainNavigation.dart';
@@ -13,12 +14,17 @@ import 'Screens/SplashScreen/Splash_Screen.dart';
 import 'Screens/UI/Enrollment_Screen.dart';
 import 'Screens/UI/Home/SubjectDetailScreen.dart';
 
+import 'Screens/UI/Tools/ToolScreens/ChatScreen.dart';
+import 'Screens/UI/Tools/ToolScreens/QuizGeneratorScreen.dart';
+import 'Screens/UI/Tools/ToolScreens/SummarizerScreen.dart';
+import 'Screens/UI/Tools/ToolScreens/ToolsScreen.dart';
 import 'Theme/App_Theme.dart';
 import 'firebase_options.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -110,6 +116,10 @@ class LearnFlowApp extends StatelessWidget {
           page: () => const SubjectDetailsScreen(), // Create this screen
           transition: Transition.rightToLeft,
         ),
+        GetPage(name: '/tools', page: () => const ToolsScreen()),
+        GetPage(name: '/summarizer', page: () => const SummarizerScreen()),
+        GetPage(name: '/quiz-generator', page: () => const QuizGeneratorScreen()),
+        GetPage(name: '/chat', page: () => const ChatScreen()),
       ],
     );
   }

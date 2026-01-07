@@ -5,75 +5,30 @@ import 'package:google_fonts/google_fonts.dart';
 class ToolsController extends GetxController {
   final RxList<Map<String, dynamic>> tools = <Map<String, dynamic>>[
     {
-      'title': 'Quiz Generator',
-      'description': 'Create custom quizzes from any topic',
-      'icon': Icons.quiz_outlined,
+      'title': 'PDF Summarizer',
+      'description': 'Upload and summarize any document',
+      'icon': Icons.description_outlined,
       'color': const Color(0xFF2196F3),
+      'route': '/summarizer',
+    },
+    {
+      'title': 'MCQ Quiz Generator',
+      'description': 'Create quizzes from documents',
+      'icon': Icons.quiz_outlined,
+      'color': const Color(0xFF10B981),
       'route': '/quiz-generator',
     },
     {
-      'title': 'Study Timer',
-      'description': 'Track your study sessions with Pomodoro',
-      'icon': Icons.timer_outlined,
-      'color': const Color(0xFF10B981),
-      'route': '/study-timer',
-    },
-    {
-      'title': 'Flashcards',
-      'description': 'Create and review flashcards',
-      'icon': Icons.style_outlined,
-      'color': const Color(0xFFF59E0B),
-      'route': '/flashcards',
-    },
-    {
-      'title': 'Essay Checker',
-      'description': 'Analyze and improve your essays',
-      'icon': Icons.spellcheck_outlined,
+      'title': 'Chat with LearnFlow',
+      'description': 'Get help and guidance from AI',
+      'icon': Icons.chat_bubble_outline,
       'color': const Color(0xFF8B5CF6),
-      'route': '/essay-checker',
-    },
-    {
-      'title': 'Progress Tracker',
-      'description': 'Visualize your learning progress',
-      'icon': Icons.trending_up_rounded,
-      'color': const Color(0xFFEC4899),
-      'route': '/progress-tracker',
-    },
-    {
-      'title': 'Study Planner',
-      'description': 'Plan your study schedule',
-      'icon': Icons.calendar_today_outlined,
-      'color': const Color(0xFF06B6D4),
-      'route': '/study-planner',
-    },
-    {
-      'title': 'Notes Manager',
-      'description': 'Organize your study notes',
-      'icon': Icons.note_outlined,
-      'color': const Color(0xFFEF4444),
-      'route': '/notes',
-    },
-    {
-      'title': 'Mock Test',
-      'description': 'Take full-length practice exams',
-      'icon': Icons.assignment_outlined,
-      'color': const Color(0xFF6366F1),
-      'route': '/mock-test',
+      'route': '/chat',
     },
   ].obs;
 
   void openTool(String route) {
-    // Navigate to tool or show coming soon
-    Get.snackbar(
-      'Coming Soon',
-      'This feature is under development',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF2196F3),
-      colorText: Colors.white,
-      icon: const Icon(Icons.info_rounded, color: Colors.white),
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-    );
+    Get.toNamed(route);
   }
 }
 
@@ -97,17 +52,18 @@ class ToolsScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF2196F3),
         elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Header Section
-          _buildHeaderSection(),
-          const SizedBox(height: 24),
-
-          // Tools Grid
-          _buildToolsGrid(controller),
-          const SizedBox(height: 80),
-        ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              _buildHeaderSection(),
+              const SizedBox(height: 24),
+              _buildToolsGrid(controller),
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -148,7 +104,7 @@ class ToolsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Learning Tools',
+                  'AI Learning Tools',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -157,7 +113,7 @@ class ToolsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Boost your productivity with these tools',
+                  'Powered by Gemini AI',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: Colors.white.withOpacity(0.9),
@@ -213,7 +169,7 @@ class ToolsScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: (tool['color'] as Color).withOpacity(0.1),
                     shape: BoxShape.circle,
@@ -224,17 +180,17 @@ class ToolsScreen extends StatelessWidget {
                     color: tool['color'],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 1),
                 Text(
                   tool['title'],
                   style: GoogleFonts.poppins(
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF1F2937),
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   tool['description'],
                   style: GoogleFonts.inter(
