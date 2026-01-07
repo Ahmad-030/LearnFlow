@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "397950061968",
+    "project_id": "learn-flow-6d419",
+    "storage_bucket": "learn-flow-6d419.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397950061968:android:2ea6abb4af54030ce1b715",
+        "android_client_info": {
+          "package_name": "com.example.learn_flow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBk-AVYb7ad4UykelM85SxNIf7zwnGmLog"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
