@@ -60,17 +60,17 @@ class LearnFlowApp extends StatelessWidget {
         ),
         GetPage(
           name: '/login',
-          page: () => const LoginScreen(),
+          page: () => const ModernLoginScreen(),
           transition: Transition.rightToLeft,
         ),
         GetPage(
           name: '/signup',
-          page: () => const SignUpScreen(),
+          page: () => const ModernSignUpScreen(),
           transition: Transition.rightToLeft,
         ),
         GetPage(
           name: '/forgot-password',
-          page: () => const ForgotPasswordScreen(),
+          page: () => const ModernForgotPasswordScreen(),
           transition: Transition.rightToLeft,
         ),
         // Add more routes here
