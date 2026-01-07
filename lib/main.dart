@@ -11,6 +11,7 @@ import 'Screens/OnboardingScreen/Onboarding_Screen.dart';
 import 'Screens/SplashScreen/Splash_Screen.dart';
 import 'Screens/UI/Enrollment_Screen.dart';
 import 'Screens/UI/HomeScreen.dart';
+import 'Screens/UI/SubjectDetailScreen.dart';
 import 'Theme/App_Theme.dart';
 import 'firebase_options.dart';
 

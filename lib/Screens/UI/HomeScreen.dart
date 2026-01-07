@@ -417,7 +417,7 @@ class HomeScreen extends StatelessWidget {
         child: InkWell(
           onTap: () {
             // Navigate to subject detail screen
-            Get.toNamed('/subject-detail', arguments: subject);
+            Get.toNamed('/subject-details', arguments: subject);
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
