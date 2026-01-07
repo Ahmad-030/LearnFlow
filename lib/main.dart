@@ -49,7 +49,7 @@ class LearnFlowApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
-      home: const SplashScreen(),
+      home: SplashScreen(),
       defaultTransition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
 
@@ -81,9 +81,9 @@ class LearnFlowApp extends StatelessWidget {
           transition: Transition.rightToLeft,
         ),
         GetPage(
-          name: '/home',
-          page: () => const HomeScreen(),
-          transition: Transition.fadeIn,
+          name: '/enrollment',
+          page: () => const EnrollmentScreen(),
+          transition: Transition.rightToLeft,
         ),
       ],
     );

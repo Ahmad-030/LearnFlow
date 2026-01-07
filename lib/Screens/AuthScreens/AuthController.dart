@@ -90,7 +90,7 @@ class AuthController extends GetxController {
       await userCredential.user?.sendEmailVerification();
 
       // Success
-      Get.offAllNamed('/home'); // Navigate to home
+      Get.offAllNamed('/enrollment'); // Navigate to home
       CustomToast.success(
         'Account created successfully! Please check your email for verification.',
       );
@@ -148,7 +148,7 @@ class AuthController extends GetxController {
       }
 
       // Success
-      Get.offAllNamed('/home'); // Navigate to home
+      Get.offAllNamed('/enrollment'); // Navigate to home
       CustomToast.success('Welcome back to LearnFlow!');
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'Login failed';
