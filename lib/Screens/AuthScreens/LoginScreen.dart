@@ -354,19 +354,6 @@ class _ModernLoginScreenState extends State<ModernLoginScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Obx(() => InkWell(
-                onTap: () => controller.toggleRememberMe(),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-
-                    ],
-                  ),
-                ),
-              )),
               TextButton(
                 onPressed: () => Get.to(() => const ModernForgotPasswordScreen()),
                 style: TextButton.styleFrom(
