@@ -3,6 +3,9 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../Model/SubjectModel.dart';
+import '../../../Services/CssSubjectService.dart';
+import '../../../Services/SubjectProgressService.dart';
 
 class DashboardController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -11,6 +14,9 @@ class DashboardController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxMap<String, dynamic> stats = <String, dynamic>{}.obs;
   final RxList<Map<String, dynamic>> recentActivities = <Map<String, dynamic>>[].obs;
+  final RxList<SubjectModel> enrolledSubjects = <SubjectModel>[].obs;
+  final RxMap<String, SubjectProgress> subjectProgressMap = <String, SubjectProgress>{}.obs;
+  final RxList<Map<String, dynamic>> weeklyProgress = <Map<String, dynamic>>[].obs;
 
   @override
   void onInit() {
@@ -23,40 +29,31 @@ class DashboardController extends GetxController {
       isLoading.value = true;
       final user = _auth.currentUser;
 
-      if (user == null) return;
+      if (user == null) {
+        Get.offAllNamed('/login');
+        return;
+      }
 
-      // Load overall statistics
-      // This is a placeholder - integrate with your actual SubjectProgressService
+      // Load enrolled subjects
+      await _loadEnrolledSubjects(user.uid);
+
+      // Load overall statistics from SubjectProgressService
+      final overallStats = await SubjectProgressService.getOverallStatistics(user.uid);
+
       stats.value = {
-        'totalQuizzes': 45,
-        'totalQuestions': 450,
-        'averageAccuracy': 78.5,
-        'totalStudyTime': 1250,
-        'currentStreak': 7,
-        'longestStreak': 15,
+        'totalQuizzes': overallStats['totalQuizzes'] ?? 0,
+        'totalQuestions': overallStats['totalQuestions'] ?? 0,
+        'averageAccuracy': overallStats['averageAccuracy'] ?? 0.0,
+        'totalStudyTime': overallStats['totalStudyTime'] ?? 0,
+        'currentStreak': overallStats['currentStreak'] ?? 0,
+        'longestStreak': overallStats['longestStreak'] ?? 0,
       };
 
-      // Load recent activities
-      recentActivities.value = [
-        {
-          'title': 'English Essay Quiz',
-          'type': 'quiz',
-          'score': 85,
-          'date': DateTime.now().subtract(const Duration(hours: 2)),
-        },
-        {
-          'title': 'Pakistan Affairs Study',
-          'type': 'study',
-          'duration': 45,
-          'date': DateTime.now().subtract(const Duration(days: 1)),
-        },
-        {
-          'title': 'Current Affairs Quiz',
-          'type': 'quiz',
-          'score': 92,
-          'date': DateTime.now().subtract(const Duration(days: 2)),
-        },
-      ];
+      // Load recent activities from all subjects
+      await _loadRecentActivities(user.uid);
+
+      // Load weekly progress data
+      await _loadWeeklyProgress(user.uid);
 
     } catch (e) {
       print('Error loading dashboard data: $e');
@@ -65,8 +62,156 @@ class DashboardController extends GetxController {
     }
   }
 
+  Future<void> _loadEnrolledSubjects(String userId) async {
+    try {
+      // Get enrolled courses from Firestore
+      final enrollmentDoc = await _firestore
+          .collection('enrollments')
+          .doc(userId)
+          .get();
+
+      if (enrollmentDoc.exists) {
+        final List<String> courses = List<String>.from(
+          enrollmentDoc.data()?['courses'] ?? [],
+        );
+
+        // Get subjects from CSS service
+        enrolledSubjects.value = CSSSubjectsService.getSubjectsByEnrolledCourses(courses);
+
+        // Load progress for each subject
+        for (var subject in enrolledSubjects) {
+          final progress = await SubjectProgressService.getSubjectProgress(
+            userId,
+            subject.id,
+          );
+          if (progress != null) {
+            subjectProgressMap[subject.id] = progress;
+          }
+        }
+      }
+    } catch (e) {
+      print('Error loading enrolled subjects: $e');
+    }
+  }
+
+  Future<void> _loadRecentActivities(String userId) async {
+    try {
+      final List<Map<String, dynamic>> activities = [];
+
+      // Collect all quiz results from all subjects
+      for (var subject in enrolledSubjects) {
+        final progress = subjectProgressMap[subject.id];
+        if (progress != null && progress.recentQuizzes.isNotEmpty) {
+          for (var quiz in progress.recentQuizzes.take(3)) {
+            activities.add({
+              'title': '${subject.name} - ${quiz.quizType}',
+              'type': 'quiz',
+              'score': quiz.score,
+              'accuracy': (quiz.correctAnswers / quiz.totalQuestions * 100).toInt(),
+              'date': quiz.completedAt,
+              'subjectIcon': subject.icon,
+              'subjectColor': subject.color,
+            });
+          }
+        }
+
+        // Add material completion activities if available
+        final completedMaterials = subject.materials.where((m) => m.isCompleted).toList();
+        for (var material in completedMaterials.take(2)) {
+          if (material.completedAt != null) {
+            activities.add({
+              'title': '${subject.name} - ${material.title}',
+              'type': 'study',
+              'materialType': material.type,
+              'date': material.completedAt!,
+              'subjectIcon': subject.icon,
+              'subjectColor': subject.color,
+            });
+          }
+        }
+      }
+
+      // Sort activities by date (most recent first)
+      activities.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+
+      // Take only the 10 most recent activities
+      recentActivities.value = activities.take(10).toList();
+
+    } catch (e) {
+      print('Error loading recent activities: $e');
+    }
+  }
+
+  Future<void> _loadWeeklyProgress(String userId) async {
+    try {
+      final now = DateTime.now();
+      final List<Map<String, dynamic>> weekData = [];
+
+      // Get data for the last 7 days
+      for (int i = 6; i >= 0; i--) {
+        final date = now.subtract(Duration(days: i));
+        final dayName = _getDayName(date.weekday);
+
+        int quizzesCount = 0;
+        int totalQuestions = 0;
+        int correctAnswers = 0;
+
+        // Check all subjects for quizzes on this day
+        for (var subject in enrolledSubjects) {
+          final progress = subjectProgressMap[subject.id];
+          if (progress != null) {
+            for (var quiz in progress.recentQuizzes) {
+              if (_isSameDay(quiz.completedAt, date)) {
+                quizzesCount++;
+                totalQuestions += quiz.totalQuestions;
+                correctAnswers += quiz.correctAnswers;
+              }
+            }
+          }
+        }
+
+        final accuracy = totalQuestions > 0 ? (correctAnswers / totalQuestions) : 0.0;
+
+        weekData.add({
+          'day': dayName,
+          'progress': accuracy,
+          'quizzes': quizzesCount,
+        });
+      }
+
+      weeklyProgress.value = weekData;
+
+    } catch (e) {
+      print('Error loading weekly progress: $e');
+    }
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1: return 'Mon';
+      case 2: return 'Tue';
+      case 3: return 'Wed';
+      case 4: return 'Thu';
+      case 5: return 'Fri';
+      case 6: return 'Sat';
+      case 7: return 'Sun';
+      default: return '';
+    }
+  }
+
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
   void refreshData() {
     _loadDashboardData();
+  }
+
+  Color getColorFromHex(String hexColor) {
+    hexColor = hexColor.replaceAll('#', '');
+    return Color(int.parse('FF$hexColor', radix: 16));
   }
 }
 
@@ -90,13 +235,17 @@ class DashboardScreen extends StatelessWidget {
         ),
         backgroundColor: const Color(0xFF2196F3),
         elevation: 0,
-
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(
             child: CircularProgressIndicator(),
           );
+        }
+
+        // Show empty state if no data
+        if (controller.enrolledSubjects.isEmpty) {
+          return _buildEmptyState();
         }
 
         return RefreshIndicator(
@@ -115,16 +264,71 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Progress Chart Section
-              _buildProgressChartSection(),
+              _buildProgressChartSection(controller),
               const SizedBox(height: 24),
 
               // Recent Activities
-              _buildRecentActivities(controller),
+              if (controller.recentActivities.isNotEmpty)
+                _buildRecentActivities(controller),
+
               const SizedBox(height: 80),
             ],
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE3F2FD),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.dashboard_outlined,
+                size: 64,
+                color: Color(0xFF2196F3),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Start Your Journey',
+              style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Enroll in courses and start taking quizzes to see your progress here.',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: const Color(0xFF6B7280),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () => Get.toNamed('/enrollment'),
+              icon: const Icon(Icons.school_rounded),
+              label: const Text('Enroll Now'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -224,7 +428,7 @@ class DashboardScreen extends StatelessWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 1.3,
+          childAspectRatio: 1.0,
           children: [
             _buildStatCard(
               'Total Quizzes',
@@ -304,7 +508,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressChartSection() {
+  Widget _buildProgressChartSection(DashboardController controller) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -342,14 +546,26 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          // Simple progress bars (you can replace with a chart library)
-          _buildProgressBar('Mon', 0.7),
-          _buildProgressBar('Tue', 0.85),
-          _buildProgressBar('Wed', 0.6),
-          _buildProgressBar('Thu', 0.9),
-          _buildProgressBar('Fri', 0.75),
-          _buildProgressBar('Sat', 0.95),
-          _buildProgressBar('Sun', 0.8),
+          if (controller.weeklyProgress.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'No activity this week',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: const Color(0xFF9CA3AF),
+                  ),
+                ),
+              ),
+            )
+          else
+            ...controller.weeklyProgress.map((dayData) {
+              return _buildProgressBar(
+                dayData['day'] as String,
+                dayData['progress'] as double,
+              );
+            }).toList(),
         ],
       ),
     );
@@ -425,16 +641,16 @@ class DashboardScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         ...controller.recentActivities.map((activity) {
-          return _buildActivityCard(activity);
+          return _buildActivityCard(activity, controller);
         }).toList(),
       ],
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> activity) {
+  Widget _buildActivityCard(Map<String, dynamic> activity, DashboardController controller) {
     final isQuiz = activity['type'] == 'quiz';
-    final icon = isQuiz ? Icons.quiz_outlined : Icons.book_outlined;
-    final color = isQuiz ? const Color(0xFF2196F3) : const Color(0xFF10B981);
+    final icon = isQuiz ? Icons.quiz_outlined : _getMaterialIcon(activity['materialType'] ?? 'study');
+    final color = controller.getColorFromHex(activity['subjectColor'] ?? '#2196F3');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -450,68 +666,94 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activity['title'],
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _formatDate(activity['date']),
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: const Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (isQuiz)
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(
-                '${activity['score']}%',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-            )
-          else
-            Text(
-              '${activity['duration']} min',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF6B7280),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    activity['subjectIcon'] ?? '📚',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(icon, color: color, size: 20),
+                ],
               ),
             ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    activity['title'],
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1F2937),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatDate(activity['date']),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: const Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isQuiz) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${activity['accuracy']}%',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
+  }
+
+  IconData _getMaterialIcon(String type) {
+    switch (type) {
+      case 'book':
+        return Icons.menu_book;
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'video':
+        return Icons.play_circle_outline;
+      case 'website':
+        return Icons.language;
+      case 'practice':
+        return Icons.assignment;
+      default:
+        return Icons.article;
+    }
   }
 
   String _formatDate(DateTime date) {
