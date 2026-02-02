@@ -18,8 +18,12 @@ import 'Screens/UI/Tools/ToolScreens/ChatScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/QuizGeneratorScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/SummarizerScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/ToolsScreen.dart';
+import 'newscreens/DatabaseSeedService.dart';
 import 'Theme/App_Theme.dart';
 import 'firebase_options.dart';
+import 'newscreens/QuizListController.dart';
+import 'newscreens/QuizReviewController.dart';
+import 'newscreens/QuizTakeController.dart';
 
 
 void main() async {
@@ -30,6 +34,14 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize database with quizzes (only runs once)
+  try {
+    await DatabaseSeedService.initializeDatabase();
+    print('Database initialized successfully');
+  } catch (e) {
+    print('Error initializing database: $e');
+  }
 
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
@@ -69,7 +81,7 @@ class LearnFlowApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
-      initialBinding: InitialBinding(), // Add this line
+      initialBinding: InitialBinding(),
       home: const SplashScreen(),
       defaultTransition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
@@ -113,9 +125,26 @@ class LearnFlowApp extends StatelessWidget {
         ),
         GetPage(
           name: '/subject-details',
-          page: () => const SubjectDetailsScreen(), // Create this screen
+          page: () => const SubjectDetailsScreen(),
           transition: Transition.rightToLeft,
         ),
+        // Quiz Routes
+        GetPage(
+          name: '/quiz-list',
+          page: () => const QuizListScreen(),
+          transition: Transition.rightToLeft,
+        ),
+        GetPage(
+          name: '/quiz-take',
+          page: () => const QuizTakeScreen(),
+          transition: Transition.rightToLeft,
+        ),
+        GetPage(
+          name: '/quiz-review',
+          page: () => const QuizReviewScreen(),
+          transition: Transition.rightToLeft,
+        ),
+        // Tools Routes
         GetPage(name: '/tools', page: () => const ToolsScreen()),
         GetPage(name: '/summarizer', page: () => const SummarizerScreen()),
         GetPage(name: '/quiz-generator', page: () => const QuizGeneratorScreen()),
