@@ -297,61 +297,9 @@ class SubjectDetailsScreen extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Quiz Types
-          Text(
-            'Available Quiz Types',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF1F2937),
-            ),
-          ),
+
           const SizedBox(height: 12),
-          ...controller.subject.quizTypes.map((quizType) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: controller.getColorFromHex(controller.subject.color).withOpacity(0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: controller.getColorFromHex(controller.subject.color).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.quiz_outlined,
-                      color: controller.getColorFromHex(controller.subject.color),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      quizType,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1F2937),
-                      ),
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: controller.getColorFromHex(controller.subject.color),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ],
+                  ],
       ),
     );
   }

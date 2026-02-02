@@ -309,26 +309,30 @@ class QuizListScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    _buildInfoChip(
-                      Icons.help_outline,
-                      '${quiz.questions.length} Questions',
-                      const Color(0xFF2196F3),
-                    ),
-                    const SizedBox(width: 12),
-                    _buildInfoChip(
-                      Icons.timer_outlined,
-                      '${quiz.duration} min',
-                      const Color(0xFFF59E0B),
-                    ),
-                    const SizedBox(width: 12),
-                    _buildInfoChip(
-                      Icons.verified_outlined,
-                      '${quiz.passingScore}% to pass',
-                      const Color(0xFF10B981),
-                    ),
-                  ],
+                // Fixed: Wrap in SingleChildScrollView to prevent overflow
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildInfoChip(
+                        Icons.help_outline,
+                        '${quiz.questions.length} Qs',
+                        const Color(0xFF2196F3),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildInfoChip(
+                        Icons.timer_outlined,
+                        '${quiz.duration} min',
+                        const Color(0xFFF59E0B),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildInfoChip(
+                        Icons.verified_outlined,
+                        '${quiz.passingScore}%',
+                        const Color(0xFF10B981),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

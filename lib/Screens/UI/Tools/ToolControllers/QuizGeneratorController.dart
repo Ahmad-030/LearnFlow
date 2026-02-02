@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -20,13 +19,15 @@ class QuizGeneratorController extends GetxController {
 
   late final GenerativeModel model;
 
+  // TODO: Replace with your actual Gemini API key
+  static const String GEMINI_API_KEY = 'YOUR_API_KEY_HERE';
+
   @override
   void onInit() {
     super.onInit();
-    final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
     model = GenerativeModel(
       model: 'gemini-1.5-flash',
-      apiKey: apiKey,
+      apiKey: GEMINI_API_KEY,
     );
   }
 

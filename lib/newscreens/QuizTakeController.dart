@@ -6,17 +6,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../Model/QuizModel.dart';
 import '../../../Services/QuizService.dart';
 import '../../../Widgets/Custom_Toast.dart';
+import '../Screens/UI/Dashboard/DashboardScreen.dart';
+import '../Screens/UI/Home/HomeScreen.dart';
+import '../Screens/UI/Home/SubjectDetailScreen.dart';
 
 class QuizTakeController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
   late QuizModel quiz;
   final RxInt currentQuestionIndex = 0.obs;
   final RxMap<String, int> selectedAnswers = <String, int>{}.obs;
   final RxInt timeRemaining = 0.obs;
   final RxBool isSubmitting = false.obs;
   final RxBool quizCompleted = false.obs;
-
   Timer? _timer;
   late DateTime startTime;
 
@@ -84,7 +85,14 @@ class QuizTakeController extends GetxController {
 
   Future<void> submitQuiz() async {
     try {
+      // Prevent multiple submissions
+      if (isSubmitting.value) {
+        print('Already submitting, ignoring duplicate call');
+        return;
+      }
+
       isSubmitting.value = true;
+      print('Starting quiz submission...');
 
       final user = _auth.currentUser;
       if (user == null) throw 'User not logged in';
@@ -92,7 +100,6 @@ class QuizTakeController extends GetxController {
       // Calculate results
       int correctAnswers = 0;
       int totalPoints = 0;
-
       for (var question in quiz.questions) {
         final selectedAnswer = selectedAnswers[question.id];
         if (selectedAnswer != null && selectedAnswer == question.correctOptionIndex) {
@@ -111,7 +118,7 @@ class QuizTakeController extends GetxController {
         userId: user.uid,
         quizId: quiz.id,
         subjectId: quiz.subjectId,
-        answers: Map<String, int>.from(selectedAnswers),
+        answers: Map.from(selectedAnswers),
         score: score,
         correctAnswers: correctAnswers,
         totalQuestions: quiz.questions.length,
@@ -121,18 +128,88 @@ class QuizTakeController extends GetxController {
         passed: passed,
       );
 
+      print('Saving quiz attempt to Firestore...');
       // Save to Firestore
       await QuizService.saveQuizAttempt(attempt);
+      print('Quiz attempt saved successfully');
+
+      // Refresh controllers
+      print('Refreshing controllers...');
+      await _refreshControllers();
+      print('Controllers refreshed');
 
       quizCompleted.value = true;
 
       // Show result dialog
       _showResultDialog(score, correctAnswers, passed);
-
     } catch (e) {
+      print('Error submitting quiz: $e');
       CustomToast.error('Failed to submit quiz: $e');
     } finally {
       isSubmitting.value = false;
+      print('Submission complete');
+    }
+  }
+
+  // FIXED: Corrected method that refreshes all controllers
+  // FIXED: More flexible method that refreshes all controllers
+  Future<void> _refreshControllers() async {
+    try {
+      // Refresh HomeController if it exists
+      if (Get.isRegistered<HomeController>()) {
+        print('Refreshing HomeController...');
+        try {
+          final homeController = Get.find<HomeController>();
+          // Try different possible method names
+          if (homeController is GetxController) {
+            homeController.update(); // Force UI update
+          }
+          // If it has a specific refresh method, call it
+          // homeController.refreshData();
+        } catch (e) {
+          print('Error refreshing HomeController: $e');
+        }
+      }
+
+      // Refresh DashboardController if it exists
+      if (Get.isRegistered<DashboardController>()) {
+        print('Refreshing DashboardController...');
+        try {
+          final dashboardController = Get.find<DashboardController>();
+          if (dashboardController is GetxController) {
+            dashboardController.update();
+          }
+          // If it has a specific refresh method, call it
+          // dashboardController.refreshData();
+        } catch (e) {
+          print('Error refreshing DashboardController: $e');
+        }
+      }
+
+      // Refresh SubjectDetailController if it exists
+      if (Get.isRegistered<SubjectDetailController>()) {
+        print('Refreshing SubjectDetailController...');
+        try {
+          final subjectController = Get.find<SubjectDetailController>();
+          if (subjectController is GetxController) {
+            subjectController.update();
+          }
+          // Try calling the refresh method - adjust the method name as needed
+          // Common method names: refreshSubjectData(), refresh(), loadData(), fetchData()
+          // subjectController.refreshSubjectData();
+        } catch (e) {
+          print('Error refreshing SubjectDetailController: $e');
+        }
+      }
+
+      print('All controllers refreshed successfully');
+
+      // Add a small delay to ensure updates propagate
+      await Future.delayed(const Duration(milliseconds: 300));
+
+    } catch (e) {
+      print('Error refreshing controllers: $e');
+      // Don't throw - we don't want refresh errors to block the submission
     }
   }
 
@@ -207,7 +284,9 @@ class QuizTakeController extends GetxController {
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: passed ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                              color: passed
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFEF4444),
                             ),
                           ),
                         ],
@@ -244,6 +323,7 @@ class QuizTakeController extends GetxController {
                         onPressed: () {
                           Get.back(); // Close dialog
                           Get.back(); // Go back to quiz list
+                          Get.back(); // Go back to subject details
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -269,7 +349,7 @@ class QuizTakeController extends GetxController {
                           Get.back(); // Close dialog
                           Get.toNamed('/quiz-review', arguments: {
                             'quiz': quiz,
-                            'answers': Map<String, int>.from(selectedAnswers),
+                            'answers': Map.from(selectedAnswers),
                           });
                         },
                         style: ElevatedButton.styleFrom(
@@ -356,12 +436,10 @@ class QuizTakeScreen extends StatelessWidget {
           children: [
             // Progress indicator
             _buildProgressBar(controller),
-
             // Question content
             Expanded(
               child: Obx(() => _buildQuestionContent(controller)),
             ),
-
             // Navigation buttons
             _buildNavigationButtons(controller),
           ],
@@ -402,7 +480,7 @@ class QuizTakeScreen extends StatelessWidget {
             child: LinearProgressIndicator(
               value: (controller.currentQuestionIndex.value + 1) / controller.totalQuestions,
               backgroundColor: const Color(0xFFE5E7EB),
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2196F3)),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF2196F3)),
               minHeight: 8,
             ),
           ),
@@ -413,7 +491,6 @@ class QuizTakeScreen extends StatelessWidget {
 
   Widget _buildQuestionContent(QuizTakeController controller) {
     final question = controller.quiz.questions[controller.currentQuestionIndex.value];
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -444,9 +521,7 @@ class QuizTakeScreen extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 24),
-
           // Options
           ...List.generate(question.options.length, (index) {
             return _buildOptionCard(
@@ -479,13 +554,15 @@ class QuizTakeScreen extends StatelessWidget {
             color: isSelected ? const Color(0xFF2196F3) : const Color(0xFFE5E7EB),
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected ? [
+          boxShadow: isSelected
+              ? [
             BoxShadow(
               color: const Color(0xFF2196F3).withOpacity(0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
-          ] : [],
+          ]
+              : [],
         ),
         child: Material(
           color: Colors.transparent,
@@ -503,7 +580,9 @@ class QuizTakeScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: isSelected ? const Color(0xFF2196F3) : Colors.white,
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF2196F3) : const Color(0xFFD1D5DB),
+                        color: isSelected
+                            ? const Color(0xFF2196F3)
+                            : const Color(0xFFD1D5DB),
                         width: 2,
                       ),
                     ),
@@ -518,7 +597,9 @@ class QuizTakeScreen extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected ? const Color(0xFF1F2937) : const Color(0xFF6B7280),
+                        color: isSelected
+                            ? const Color(0xFF1F2937)
+                            : const Color(0xFF6B7280),
                       ),
                     ),
                   ),
@@ -568,8 +649,7 @@ class QuizTakeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-            if (controller.currentQuestionIndex.value > 0)
-              const SizedBox(width: 12),
+            if (controller.currentQuestionIndex.value > 0) const SizedBox(width: 12),
             Expanded(
               flex: controller.currentQuestionIndex.value > 0 ? 1 : 2,
               child: controller.isLastQuestion

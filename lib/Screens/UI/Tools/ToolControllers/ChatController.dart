@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -38,13 +37,15 @@ class ChatController extends GetxController {
   late final GenerativeModel model;
   late final ChatSession chat;
 
+  // TODO: Replace with your actual Gemini API key
+  static const String GEMINI_API_KEY = 'YOUR_API_KEY_HERE';
+
   @override
   void onInit() {
     super.onInit();
-    final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
     model = GenerativeModel(
       model: 'gemini-1.5-flash',
-      apiKey: apiKey,
+      apiKey: GEMINI_API_KEY,
     );
     chat = model.startChat();
     _loadChatHistory();

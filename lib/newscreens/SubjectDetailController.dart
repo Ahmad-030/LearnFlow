@@ -46,6 +46,11 @@ class SubjectDetailController extends GetxController with GetSingleTickerProvide
     }
   }
 
+  // Public method to refresh progress from outside
+  Future<void> refreshProgress() async {
+    await _loadProgress();
+  }
+
   Future<void> openLink(String? url) async {
     if (url == null || url.isEmpty) {
       Get.snackbar(

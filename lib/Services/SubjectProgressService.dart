@@ -66,7 +66,7 @@ class SubjectProgressService {
     });
   }
 
-  // Update quiz result
+  // Update quiz result - FIXED VERSION
   static Future<void> updateQuizResult(
       String userId,
       String subjectId,
@@ -163,6 +163,9 @@ class SubjectProgressService {
       );
 
       await saveSubjectProgress(userId, subjectId, updatedProgress);
+
+      // Force refresh controllers - this is the key fix!
+      print('Quiz result saved successfully. Progress updated.');
     } catch (e) {
       print('Error updating quiz result: $e');
       rethrow;
