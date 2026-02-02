@@ -1,6 +1,5 @@
 import '../Model/SubjectModel.dart';
 
-
 class CSSSubjectsService {
   // Get all CSS subjects with their materials and quiz types
   static List<SubjectModel> getAllCSSSubjects() {
@@ -29,19 +28,25 @@ class CSSSubjectsService {
           EducationalMaterial(
             type: 'pdf',
             title: 'CSS Essay Writing Guide',
-            link: 'https://fpsc.gov.pk/',
+            link: 'https://www.fpsc.gov.pk/downloads',
             description: 'Official FPSC essay writing guidelines',
           ),
           EducationalMaterial(
             type: 'video',
             title: 'Essay Writing Masterclass',
-            link: 'https://www.youtube.com/results?search_query=css+essay+writing',
+            link: 'https://www.youtube.com/results?search_query=css+essay+writing+tutorial',
             description: 'Video tutorials on CSS essay writing',
+          ),
+          EducationalMaterial(
+            type: 'website',
+            title: 'Purdue Online Writing Lab',
+            link: 'https://owl.purdue.edu/owl/general_writing/academic_writing/essay_writing/index.html',
+            description: 'Comprehensive essay writing resources',
           ),
           EducationalMaterial(
             type: 'practice',
             title: 'Past Papers - Essays',
-            link: 'https://fpsc.gov.pk/past-papers',
+            link: 'https://www.fpsc.gov.pk/downloads',
             description: 'Previous CSS essay topics and solutions',
           ),
         ],
@@ -72,19 +77,25 @@ class CSSSubjectsService {
             type: 'book',
             title: 'Word Power Made Easy',
             author: 'Norman Lewis',
-            link: 'https://www.gutenberg.org/',
+            link: 'https://archive.org/details/WordPowerMadeEasy_201604',
             description: 'Vocabulary building classic',
           ),
           EducationalMaterial(
             type: 'website',
             title: 'CSS Forums - English Section',
-            link: 'https://www.cssforum.com.pk/',
+            link: 'https://www.cssforum.com.pk/css-compulsory-subjects/english-precis-composition/',
             description: 'Community discussions and resources',
+          ),
+          EducationalMaterial(
+            type: 'website',
+            title: 'Grammarly Blog',
+            link: 'https://www.grammarly.com/blog/',
+            description: 'Grammar tips and writing advice',
           ),
           EducationalMaterial(
             type: 'practice',
             title: 'Precis Practice Tests',
-            link: 'https://fpsc.gov.pk/past-papers',
+            link: 'https://www.fpsc.gov.pk/downloads',
             description: 'Practice precis writing exercises',
           ),
         ],
@@ -105,16 +116,9 @@ class CSSSubjectsService {
         ],
         materials: [
           EducationalMaterial(
-            type: 'book',
-            title: 'Science for Everyone',
-            author: 'Various Authors',
-            link: 'https://www.khanacademy.org/science',
-            description: 'Comprehensive science concepts',
-          ),
-          EducationalMaterial(
             type: 'video',
             title: 'Khan Academy - Science',
-            link: 'https://www.khanacademy.org/',
+            link: 'https://www.khanacademy.org/science',
             description: 'Free science video lectures',
           ),
           EducationalMaterial(
@@ -124,9 +128,21 @@ class CSSSubjectsService {
             description: 'Latest scientific discoveries and articles',
           ),
           EducationalMaterial(
+            type: 'website',
+            title: 'NASA - Science',
+            link: 'https://science.nasa.gov/',
+            description: 'Space and earth science resources',
+          ),
+          EducationalMaterial(
+            type: 'pdf',
+            title: 'General Science Notes',
+            link: 'https://www.cssforum.com.pk/css-compulsory-subjects/general-science-ability/',
+            description: 'Compiled science notes for CSS',
+          ),
+          EducationalMaterial(
             type: 'practice',
             title: 'Science MCQs Bank',
-            link: 'https://fpsc.gov.pk/past-papers',
+            link: 'https://www.fpsc.gov.pk/downloads',
             description: 'Practice multiple choice questions',
           ),
         ],
@@ -165,6 +181,12 @@ class CSSSubjectsService {
             description: 'International news coverage',
           ),
           EducationalMaterial(
+            type: 'website',
+            title: 'Al Jazeera',
+            link: 'https://www.aljazeera.com/',
+            description: 'Global news and current affairs',
+          ),
+          EducationalMaterial(
             type: 'pdf',
             title: 'Monthly Current Affairs Digest',
             link: 'https://www.cssforum.com.pk/css-optional-subjects/current-affairs/',
@@ -173,7 +195,7 @@ class CSSSubjectsService {
           EducationalMaterial(
             type: 'practice',
             title: 'Current Affairs MCQs',
-            link: 'https://fpsc.gov.pk/',
+            link: 'https://www.fpsc.gov.pk/downloads',
             description: 'Monthly updated MCQs on current affairs',
           ),
         ],
@@ -197,7 +219,7 @@ class CSSSubjectsService {
             type: 'book',
             title: 'Pakistan Affairs for CSS',
             author: 'Ikram Rabbani',
-            link: 'https://www.cssforum.com.pk/',
+            link: 'https://www.cssforum.com.pk/css-compulsory-subjects/pakistan-affairs/',
             description: 'Comprehensive Pakistan affairs guide',
           ),
           EducationalMaterial(
@@ -209,19 +231,25 @@ class CSSSubjectsService {
           EducationalMaterial(
             type: 'pdf',
             title: 'Pakistan Economic Survey',
-            link: 'https://www.finance.gov.pk/',
+            link: 'https://www.finance.gov.pk/survey_2324.html',
             description: 'Annual economic report',
+          ),
+          EducationalMaterial(
+            type: 'website',
+            title: 'PBS - Pakistan Bureau of Statistics',
+            link: 'https://www.pbs.gov.pk/',
+            description: 'Official statistics and data',
           ),
           EducationalMaterial(
             type: 'video',
             title: 'Pakistan History Documentaries',
-            link: 'https://www.youtube.com/results?search_query=pakistan+history',
+            link: 'https://www.youtube.com/results?search_query=pakistan+history+documentary',
             description: 'Visual learning resources',
           ),
           EducationalMaterial(
             type: 'practice',
             title: 'Pakistan Affairs MCQs',
-            link: 'https://fpsc.gov.pk/past-papers',
+            link: 'https://www.fpsc.gov.pk/downloads',
             description: 'Practice questions on Pakistan',
           ),
         ],
@@ -245,7 +273,7 @@ class CSSSubjectsService {
             type: 'book',
             title: 'Islamic Studies for CSS',
             author: 'Dogar Publishers',
-            link: 'https://www.cssforum.com.pk/',
+            link: 'https://www.cssforum.com.pk/css-compulsory-subjects/islamiat-ethics/',
             description: 'Complete Islamic studies guide for CSS',
           ),
           EducationalMaterial(
@@ -261,15 +289,21 @@ class CSSSubjectsService {
             description: 'Hadith collection and search',
           ),
           EducationalMaterial(
+            type: 'website',
+            title: 'IslamicFinder',
+            link: 'https://www.islamicfinder.org/',
+            description: 'Islamic resources and prayer times',
+          ),
+          EducationalMaterial(
             type: 'pdf',
             title: 'Islamic Jurisprudence Notes',
-            link: 'https://www.cssforum.com.pk/',
+            link: 'https://www.cssforum.com.pk/css-compulsory-subjects/islamiat-ethics/',
             description: 'Fiqh and Islamic law concepts',
           ),
           EducationalMaterial(
             type: 'practice',
             title: 'Islamic Studies MCQs',
-            link: 'https://fpsc.gov.pk/past-papers',
+            link: 'https://www.fpsc.gov.pk/downloads',
             description: 'Practice questions and past papers',
           ),
         ],

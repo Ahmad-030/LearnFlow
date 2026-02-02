@@ -151,51 +151,54 @@ class QuizReviewScreen extends StatelessWidget {
           final question = controller.quiz.questions[index];
           final userAnswer = controller.userAnswers[question.id];
           final isCorrect = userAnswer == question.correctOptionIndex;
-          final isSelected = controller.currentQuestionIndex.value == index;
 
-          return Obx(() => GestureDetector(
+          return GestureDetector(
             onTap: () => controller.goToQuestion(index),
-            child: Container(
-              width: 56,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF2196F3)
-                    : (isCorrect ? const Color(0xFF10B981) : const Color(0xFFEF4444))
-                    .withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
+            child: Obx(() {
+              final isSelected = controller.currentQuestionIndex.value == index;
+
+              return Container(
+                width: 56,
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
                   color: isSelected
                       ? const Color(0xFF2196F3)
-                      : (isCorrect ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
-                  width: 2,
+                      : (isCorrect ? const Color(0xFF10B981) : const Color(0xFFEF4444))
+                      .withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? const Color(0xFF2196F3)
+                        : (isCorrect ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
+                    width: 2,
+                  ),
                 ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${index + 1}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${index + 1}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected
+                            ? Colors.white
+                            : (isCorrect ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Icon(
+                      isCorrect ? Icons.check_circle : Icons.cancel,
+                      size: 16,
                       color: isSelected
                           ? Colors.white
                           : (isCorrect ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Icon(
-                    isCorrect ? Icons.check_circle : Icons.cancel,
-                    size: 16,
-                    color: isSelected
-                        ? Colors.white
-                        : (isCorrect ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
-                  ),
-                ],
-              ),
-            ),
-          ));
+                  ],
+                ),
+              );
+            }),
+          );
         },
       ),
     );
