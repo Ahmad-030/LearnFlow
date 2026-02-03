@@ -38,7 +38,7 @@ class ChatController extends GetxController {
   late final ChatSession chat;
 
   // TODO: Replace with your actual Gemini API key
-  static const String GEMINI_API_KEY = 'YOUR_API_KEY_HERE';
+  static const String GEMINI_API_KEY = 'AIzaSyABC123def456GHI789jkl';
 
   @override
   void onInit() {

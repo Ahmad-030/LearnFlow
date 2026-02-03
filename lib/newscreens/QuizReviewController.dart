@@ -13,7 +13,7 @@ class QuizReviewController extends GetxController {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>;
     quiz = args['quiz'] as QuizModel;
-    userAnswers = args['answers'] as Map<String, int>;
+    userAnswers = Map<String, int>.from(args['answers'] as Map);  // FIXED LINE
   }
 
   void goToQuestion(int index) {

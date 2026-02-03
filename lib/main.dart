@@ -82,7 +82,8 @@ class LearnFlowApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
       initialBinding: InitialBinding(),
-      home: const SplashScreen(),
+      home: const EnrollmentScreen(
+      ),
       defaultTransition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
 
