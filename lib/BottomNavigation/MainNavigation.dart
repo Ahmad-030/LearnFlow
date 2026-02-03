@@ -3,7 +3,8 @@ import 'package:get/get.dart';
 
 import '../Screens/UI/Dashboard/DashboardScreen.dart';
 import '../Screens/UI/Home/HomeScreen.dart';
-import '../Screens/UI/Profile/ProfileScreens.dart';
+import '../Screens/UI/Profile/ProfileScreen.dart';
+import '../Screens/UI/Profile/ProfileScreens_Controller.dart';
 import '../Screens/UI/Tools/ToolScreens/ToolsScreen.dart';
 import '../Widgets/Custom_BottomNavingation.dart';
 

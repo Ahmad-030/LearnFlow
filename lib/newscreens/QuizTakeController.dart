@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../Model/QuizModel.dart';
-import '../../../Services/QuizService.dart';
-import '../../../Widgets/Custom_Toast.dart';
-import '../Screens/UI/Dashboard/DashboardScreen.dart';
+import '../Model/QuizModel.dart';
 import '../Screens/UI/Home/HomeScreen.dart';
+import '../Services/QuizService.dart';
+import '../Widgets/Custom_Toast.dart';
+import '../Screens/UI/Dashboard/DashboardScreen.dart';
 import '../Screens/UI/Home/SubjectDetailScreen.dart';
 
 class QuizTakeController extends GetxController {
@@ -26,7 +26,7 @@ class QuizTakeController extends GetxController {
     super.onInit();
     quiz = Get.arguments as QuizModel;
     startTime = DateTime.now();
-    timeRemaining.value = quiz.duration * 60; // Convert minutes to seconds
+    timeRemaining.value = quiz.duration * 60;
     _startTimer();
   }
 
@@ -85,11 +85,7 @@ class QuizTakeController extends GetxController {
 
   Future<void> submitQuiz() async {
     try {
-      // Prevent multiple submissions
-      if (isSubmitting.value) {
-        print('Already submitting, ignoring duplicate call');
-        return;
-      }
+      if (isSubmitting.value) return;
 
       isSubmitting.value = true;
       print('Starting quiz submission...');
@@ -110,7 +106,7 @@ class QuizTakeController extends GetxController {
 
       final score = ((correctAnswers / quiz.questions.length) * 100).round();
       final passed = score >= quiz.passingScore;
-      final timeTaken = DateTime.now().difference(startTime).inMinutes;
+      final timeTaken = DateTime.now().difference(startTime).inMinutes.clamp(1, quiz.duration);
 
       // Create quiz attempt
       final attempt = UserQuizAttempt(
@@ -129,87 +125,73 @@ class QuizTakeController extends GetxController {
       );
 
       print('Saving quiz attempt to Firestore...');
-      // Save to Firestore
       await QuizService.saveQuizAttempt(attempt);
       print('Quiz attempt saved successfully');
 
-      // Refresh controllers
-      print('Refreshing controllers...');
-      await _refreshControllers();
-      print('Controllers refreshed');
+      // Force refresh all controllers
+      await _forceRefreshAllControllers();
 
       quizCompleted.value = true;
 
-      // Show result dialog
+      // Show result dialog with retry option
       _showResultDialog(score, correctAnswers, passed);
     } catch (e) {
       print('Error submitting quiz: $e');
       CustomToast.error('Failed to submit quiz: $e');
     } finally {
       isSubmitting.value = false;
-      print('Submission complete');
     }
   }
 
-  // FIXED: Corrected method that refreshes all controllers
-  // FIXED: More flexible method that refreshes all controllers
-  Future<void> _refreshControllers() async {
+  // Enhanced method to force refresh all controllers
+  Future<void> _forceRefreshAllControllers() async {
     try {
-      // Refresh HomeController if it exists
+      print('Force refreshing all controllers...');
+
+      // Small delay to ensure Firestore write completes
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Refresh HomeController
       if (Get.isRegistered<HomeController>()) {
-        print('Refreshing HomeController...');
         try {
           final homeController = Get.find<HomeController>();
-          // Try different possible method names
-          if (homeController is GetxController) {
-            homeController.update(); // Force UI update
-          }
-          // If it has a specific refresh method, call it
-          // homeController.refreshData();
+          print('Refreshing HomeController...');
+          homeController.refreshData();
+          homeController.update();
         } catch (e) {
           print('Error refreshing HomeController: $e');
         }
       }
 
-      // Refresh DashboardController if it exists
+      // Refresh DashboardController
       if (Get.isRegistered<DashboardController>()) {
-        print('Refreshing DashboardController...');
         try {
           final dashboardController = Get.find<DashboardController>();
-          if (dashboardController is GetxController) {
-            dashboardController.update();
-          }
-          // If it has a specific refresh method, call it
-          // dashboardController.refreshData();
+          print('Refreshing DashboardController...');
+          dashboardController.refreshData();
+          dashboardController.update();
         } catch (e) {
           print('Error refreshing DashboardController: $e');
         }
       }
 
-      // Refresh SubjectDetailController if it exists
+      // Refresh SubjectDetailController
       if (Get.isRegistered<SubjectDetailController>()) {
-        print('Refreshing SubjectDetailController...');
         try {
           final subjectController = Get.find<SubjectDetailController>();
-          if (subjectController is GetxController) {
-            subjectController.update();
-          }
-          // Try calling the refresh method - adjust the method name as needed
-          // Common method names: refreshSubjectData(), refresh(), loadData(), fetchData()
-          // subjectController.refreshSubjectData();
+          print('Refreshing SubjectDetailController...');
+          await subjectController.refreshProgress();
+          subjectController.update();
         } catch (e) {
           print('Error refreshing SubjectDetailController: $e');
         }
       }
 
       print('All controllers refreshed successfully');
-
-      // Add a small delay to ensure updates propagate
       await Future.delayed(const Duration(milliseconds: 300));
 
     } catch (e) {
-      print('Error refreshing controllers: $e');
-      // Don't throw - we don't want refresh errors to block the submission
+      print('Error in force refresh: $e');
     }
   }
 
@@ -226,6 +208,7 @@ class QuizTakeController extends GetxController {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Result Icon
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -241,6 +224,8 @@ class QuizTakeController extends GetxController {
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Title
                 Text(
                   passed ? 'Congratulations!' : 'Keep Practicing!',
                   style: GoogleFonts.poppins(
@@ -250,10 +235,12 @@ class QuizTakeController extends GetxController {
                   ),
                 ),
                 const SizedBox(height: 12),
+
+                // Message
                 Text(
                   passed
-                      ? 'You passed the quiz!'
-                      : 'You didn\'t pass this time, but don\'t give up!',
+                      ? 'You passed the quiz! Great job! 🎉'
+                      : 'You didn\'t pass this time, but every attempt makes you stronger! 💪',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: const Color(0xFF6B7280),
@@ -261,6 +248,8 @@ class QuizTakeController extends GetxController {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
+
+                // Score Card
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -282,7 +271,7 @@ class QuizTakeController extends GetxController {
                           Text(
                             '$score%',
                             style: GoogleFonts.poppins(
-                              fontSize: 18,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: passed
                                   ? const Color(0xFF10B981)
@@ -312,39 +301,39 @@ class QuizTakeController extends GetxController {
                           ),
                         ],
                       ),
+                      const Divider(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Passing Score',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: const Color(0xFF6B7280),
+                            ),
+                          ),
+                          Text(
+                            '${quiz.passingScore}%',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF1F2937),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                Row(
+
+                // Action Buttons
+                Column(
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Get.back(); // Close dialog
-                          Get.back(); // Go back to quiz list
-                          Get.back(); // Go back to subject details
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: Color(0xFFE5E7EB), width: 2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Close',
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF6B7280),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
+                    // Review Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
                         onPressed: () {
                           Get.back(); // Close dialog
                           Get.toNamed('/quiz-review', arguments: {
@@ -352,19 +341,73 @@ class QuizTakeController extends GetxController {
                             'answers': Map.from(selectedAnswers),
                           });
                         },
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: Text(
+                          'Review Answers',
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2196F3),
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
-                          'Review',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Retry Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Get.back(); // Close dialog
+                          Get.back(); // Go back to quiz list
+                          // Immediately restart the quiz
+                          Future.delayed(const Duration(milliseconds: 300), () {
+                            Get.toNamed('/quiz-take', arguments: quiz);
+                          });
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: Text(
+                          'Retry Quiz',
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF10B981),
+                          side: const BorderSide(color: Color(0xFF10B981), width: 2),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Close Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () {
+                          Get.back(); // Close dialog
+                          Get.back(); // Go back to quiz list
+                          Get.back(); // Go back to subject details
+                        },
+                        child: Text(
+                          'Back to Subject',
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF6B7280),
                           ),
                         ),
                       ),
