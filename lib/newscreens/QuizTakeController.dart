@@ -9,6 +9,7 @@ import '../Services/QuizService.dart';
 import '../Widgets/Custom_Toast.dart';
 import '../Screens/UI/Dashboard/DashboardScreen.dart';
 import '../Screens/UI/Home/SubjectDetailScreen.dart';
+import 'QuizListController.dart';
 
 class QuizTakeController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -128,6 +129,9 @@ class QuizTakeController extends GetxController {
       await QuizService.saveQuizAttempt(attempt);
       print('Quiz attempt saved successfully');
 
+      // Wait for Firestore to complete write
+      await Future.delayed(const Duration(milliseconds: 1000));
+
       // Force refresh all controllers
       await _forceRefreshAllControllers();
 
@@ -147,9 +151,6 @@ class QuizTakeController extends GetxController {
   Future<void> _forceRefreshAllControllers() async {
     try {
       print('Force refreshing all controllers...');
-
-      // Small delay to ensure Firestore write completes
-      await Future.delayed(const Duration(milliseconds: 500));
 
       // Refresh HomeController
       if (Get.isRegistered<HomeController>()) {
@@ -187,8 +188,20 @@ class QuizTakeController extends GetxController {
         }
       }
 
+      // Refresh QuizListController
+      if (Get.isRegistered<QuizListController>()) {
+        try {
+          final quizListController = Get.find<QuizListController>();
+          print('Refreshing QuizListController...');
+          await quizListController.loadQuizAttempts();
+          quizListController.update();
+        } catch (e) {
+          print('Error refreshing QuizListController: $e');
+        }
+      }
+
       print('All controllers refreshed successfully');
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
 
     } catch (e) {
       print('Error in force refresh: $e');

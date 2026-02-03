@@ -4,13 +4,29 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../Model/QuizModel.dart';
 import '../../../Model/SubjectModel.dart';
+import '../../../Services/QuizService.dart';
 import 'QuizDataService.dart';
+
+class QuizAttemptSummary {
+  final int attemptCount;
+  final int? bestScore;
+  final DateTime? lastAttemptDate;
+  final bool? lastAttemptPassed;
+
+  QuizAttemptSummary({
+    required this.attemptCount,
+    this.bestScore,
+    this.lastAttemptDate,
+    this.lastAttemptPassed,
+  });
+}
 
 class QuizListController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   late SubjectModel subject;
   final RxList<QuizModel> quizzes = <QuizModel>[].obs;
+  final RxMap<String, QuizAttemptSummary> quizAttempts = <String, QuizAttemptSummary>{}.obs;
   final RxBool isLoading = true.obs;
   final RxString selectedQuizType = 'All'.obs;
 
@@ -19,6 +35,7 @@ class QuizListController extends GetxController {
     super.onInit();
     subject = Get.arguments as SubjectModel;
     _loadQuizzes();
+    loadQuizAttempts();
   }
 
   void _loadQuizzes() {
@@ -29,6 +46,53 @@ class QuizListController extends GetxController {
       print('Error loading quizzes: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> loadQuizAttempts() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      print('Loading quiz attempts for user: ${user.uid}');
+
+      // Get all attempts for this subject
+      final attempts = await QuizService.getUserQuizAttempts(user.uid, subject.id);
+
+      print('Found ${attempts.length} total attempts');
+
+      // Group attempts by quiz ID
+      Map<String, List<UserQuizAttempt>> attemptsByQuiz = {};
+      for (var attempt in attempts) {
+        if (!attemptsByQuiz.containsKey(attempt.quizId)) {
+          attemptsByQuiz[attempt.quizId] = [];
+        }
+        attemptsByQuiz[attempt.quizId]!.add(attempt);
+      }
+
+      // Create summary for each quiz
+      Map<String, QuizAttemptSummary> summaries = {};
+      attemptsByQuiz.forEach((quizId, quizAttempts) {
+        // Sort by date descending
+        quizAttempts.sort((a, b) => b.completedAt.compareTo(a.completedAt));
+
+        final bestScore = quizAttempts.map((a) => a.score).reduce((a, b) => a > b ? a : b);
+        final lastAttempt = quizAttempts.first;
+
+        summaries[quizId] = QuizAttemptSummary(
+          attemptCount: quizAttempts.length,
+          bestScore: bestScore,
+          lastAttemptDate: lastAttempt.completedAt,
+          lastAttemptPassed: lastAttempt.passed,
+        );
+
+        print('Quiz $quizId: ${quizAttempts.length} attempts, best score: $bestScore');
+      });
+
+      quizAttempts.value = summaries;
+      update();
+    } catch (e) {
+      print('Error loading quiz attempts: $e');
     }
   }
 
@@ -45,6 +109,14 @@ class QuizListController extends GetxController {
 
   void filterByType(String type) {
     selectedQuizType.value = type;
+  }
+
+  bool isQuizAttempted(String quizId) {
+    return quizAttempts.containsKey(quizId);
+  }
+
+  QuizAttemptSummary? getQuizAttemptSummary(String quizId) {
+    return quizAttempts[quizId];
   }
 
   Color getColorFromHex(String hexColor) {
@@ -221,18 +293,27 @@ class QuizListScreen extends StatelessWidget {
         itemCount: quizzes.length,
         itemBuilder: (context, index) {
           final quiz = quizzes[index];
-          return _buildQuizCard(quiz, controller);
+          final attemptSummary = controller.getQuizAttemptSummary(quiz.id);
+          return _buildQuizCard(quiz, controller, attemptSummary);
         },
       );
     });
   }
 
-  Widget _buildQuizCard(QuizModel quiz, QuizListController controller) {
+  Widget _buildQuizCard(QuizModel quiz, QuizListController controller, QuizAttemptSummary? attemptSummary) {
+    final isAttempted = attemptSummary != null;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: isAttempted
+            ? Border.all(
+          color: controller.getColorFromHex(controller.subject.color).withOpacity(0.3),
+          width: 2,
+        )
+            : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -309,7 +390,8 @@ class QuizListScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Fixed: Wrap in SingleChildScrollView to prevent overflow
+
+                // Quiz Info
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -334,6 +416,96 @@ class QuizListScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                // Attempt Information
+                if (isAttempted) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: controller.getColorFromHex(controller.subject.color).withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: controller.getColorFromHex(controller.subject.color).withOpacity(0.2),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.history,
+                              size: 18,
+                              color: controller.getColorFromHex(controller.subject.color),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Quiz Progress',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF1F2937),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildAttemptStat(
+                              'Attempts',
+                              '${attemptSummary.attemptCount}',
+                              Icons.repeat,
+                            ),
+                            _buildAttemptStat(
+                              'Best Score',
+                              '${attemptSummary.bestScore}%',
+                              Icons.star,
+                            ),
+                            _buildAttemptStat(
+                              'Status',
+                              attemptSummary.lastAttemptPassed == true ? 'Passed' : 'Failed',
+                              attemptSummary.lastAttemptPassed == true
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Get.toNamed('/quiz-take', arguments: quiz);
+                                },
+                                icon: const Icon(Icons.refresh, size: 18),
+                                label: Text(
+                                  'Retry Quiz',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: controller.getColorFromHex(controller.subject.color),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -364,6 +536,30 @@ class QuizListScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAttemptStat(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: const Color(0xFF6B7280)),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1F2937),
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            color: const Color(0xFF6B7280),
+          ),
+        ),
+      ],
     );
   }
 }
