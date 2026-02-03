@@ -46,6 +46,11 @@ class SubjectDetailController extends GetxController with GetSingleTickerProvide
     }
   }
 
+  // Public method to refresh progress from outside - ADDED THIS METHOD
+  Future<void> refreshProgress() async {
+    await _loadProgress();
+  }
+
   Future<void> openLink(String? url) async {
     if (url == null || url.isEmpty) {
       Get.snackbar(
@@ -295,11 +300,7 @@ class SubjectDetailsScreen extends StatelessWidget {
           _buildQuickStats(controller),
 
           const SizedBox(height: 20),
-
-          // Quiz Types
-
-          const SizedBox(height: 12),
-                  ],
+        ],
       ),
     );
   }

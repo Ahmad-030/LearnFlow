@@ -50,9 +50,7 @@ class ProfileScreen extends StatelessWidget {
               _buildProfileHeader(controller),
               const SizedBox(height: 24),
 
-              // Quick Stats Grid
-              _buildQuickStatsGrid(controller),
-              const SizedBox(height: 24),
+
 
               // Detailed Statistics
               _buildDetailedStatistics(controller),
@@ -158,11 +156,14 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            // FIXED: Changed Row to Wrap to prevent overflow
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -179,7 +180,7 @@ class ProfileScreen extends StatelessWidget {
                       Text(
                         'CSS Aspirant',
                         style: GoogleFonts.inter(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
@@ -187,9 +188,8 @@ class ProfileScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -206,7 +206,7 @@ class ProfileScreen extends StatelessWidget {
                       Text(
                         '${controller.userStats['currentStreak'] ?? 0} Day Streak',
                         style: GoogleFonts.inter(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
@@ -244,45 +244,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStatsGrid(ProfileController controller) {
-    return Obx(() {
-      final stats = controller.userStats;
-      return GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 1.2,
-        children: [
-          _buildStatCard(
-            'Subjects',
-            '${stats['totalSubjects'] ?? 0}',
-            Icons.book_outlined,
-            const Color(0xFF2196F3),
-          ),
-          _buildStatCard(
-            'Quizzes',
-            '${stats['totalQuizzes'] ?? 0}',
-            Icons.quiz_outlined,
-            const Color(0xFF10B981),
-          ),
-          _buildStatCard(
-            'Accuracy',
-            '${(stats['averageAccuracy'] ?? 0.0).toStringAsFixed(1)}%',
-            Icons.trending_up_rounded,
-            const Color(0xFFF59E0B),
-          ),
-          _buildStatCard(
-            'Best Score',
-            '${stats['bestScore'] ?? 0}%',
-            Icons.emoji_events_outlined,
-            const Color(0xFF8B5CF6),
-          ),
-        ],
-      );
-    });
-  }
+
 
   Widget _buildStatCard(String label, String value, IconData icon, Color color) {
     return Container(
