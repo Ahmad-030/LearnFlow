@@ -13,6 +13,7 @@ import 'Screens/SplashScreen/Splash_Screen.dart';
 import 'Screens/UI/Enrollment_Screen.dart';
 import 'Screens/UI/Home/SubjectDetailScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/ChatScreen.dart';
+import 'Screens/UI/Tools/ToolScreens/ComprehensiveQuizScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/QuizGeneratorScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/StudyPlanScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/SummarizerScreen.dart';
@@ -144,7 +145,11 @@ class LearnFlowApp extends StatelessWidget {
           page: () => const QuizReviewScreen(),
           transition: Transition.rightToLeft,
         ),
-
+        GetPage(
+          name: '/comprehensive-quiz',
+          page: () => ComprehensiveQuizScreen(), // Create this screen
+            // Create this binding if needed
+        ),
         GetPage(name: '/tools', page: () => const ToolsScreen()),
         GetPage(name: '/summarizer', page: () => const SummarizerScreen()),
         GetPage(name: '/quiz-generator', page: () => const QuizGeneratorScreen()),

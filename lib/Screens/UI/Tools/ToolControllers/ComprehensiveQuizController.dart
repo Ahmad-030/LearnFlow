@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../Model/ComprehensiveQuizModel.dart';
+import '../../../../Model/SubjectModel.dart';
 import '../../../../Services/ComprehensiveQuizService.dart';
 import '../../../../Services/CssSubjectService.dart';
-
 
 class ComprehensiveQuizController extends GetxController {
   final _auth = FirebaseAuth.instance;
@@ -16,11 +16,10 @@ class ComprehensiveQuizController extends GetxController {
   var isQuizCompleted = false.obs;
   var currentAttempt = Rxn<ComprehensiveQuizAttempt>();
   var startTime = Rxn<DateTime>();
-
   var totalQuestions = 0.obs;
   var estimatedTime = 0.obs;
-
   var isLastQuestion = false.obs;
+  var enrolledSubjects = <SubjectModel>[].obs;
 
   @override
   void onInit() {
@@ -33,7 +32,9 @@ class ComprehensiveQuizController extends GetxController {
       final userId = _auth.currentUser?.uid;
       if (userId == null) return;
 
-      final subjects = await CssSubjectService.getEnrolledSubjects(userId);
+      // Get all subjects
+      final subjects = CSSSubjectsService.getAllCSSSubjects();
+
       totalQuestions.value = subjects.length * 5; // 5 questions per subject
       estimatedTime.value = totalQuestions.value * 2; // 2 min per question
     } catch (e) {
@@ -44,20 +45,24 @@ class ComprehensiveQuizController extends GetxController {
   Future<void> generateQuiz() async {
     try {
       isLoading.value = true;
-
       final userId = _auth.currentUser?.uid;
+
       if (userId == null) {
-        Get.snackbar('Error', 'Please login first');
+        Get.snackbar(
+          'Error',
+          'Please login first',
+          snackPosition: SnackPosition.BOTTOM,
+        );
         return;
       }
 
-      // Get enrolled subjects
-      final subjects = await CSSSubjectsService.getEnrolledSubjects(userId);
+      // Get all subjects
+      enrolledSubjects.value = CSSSubjectsService.getAllCSSSubjects();
 
-      if (subjects.isEmpty) {
+      if (enrolledSubjects.isEmpty) {
         Get.snackbar(
           'No Subjects',
-          'Please enroll in subjects first',
+          'No subjects available',
           snackPosition: SnackPosition.BOTTOM,
         );
         isLoading.value = false;
@@ -67,7 +72,7 @@ class ComprehensiveQuizController extends GetxController {
       // Generate comprehensive quiz
       final generatedQuiz = await ComprehensiveQuizService.generateComprehensiveQuiz(
         userId,
-        subjects,
+        enrolledSubjects,
       );
 
       quiz.value = generatedQuiz;
@@ -75,7 +80,6 @@ class ComprehensiveQuizController extends GetxController {
       selectedAnswers.clear();
       currentQuestionIndex.value = 0;
       isQuizCompleted.value = false;
-
       _updateLastQuestionStatus();
 
     } catch (e) {
@@ -84,6 +88,7 @@ class ComprehensiveQuizController extends GetxController {
         'Failed to generate quiz: $e',
         snackPosition: SnackPosition.BOTTOM,
       );
+      print('Generate quiz error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -94,7 +99,8 @@ class ComprehensiveQuizController extends GetxController {
   }
 
   void nextQuestion() {
-    if (currentQuestionIndex.value < quiz.value!.questions.length - 1) {
+    if (quiz.value != null &&
+        currentQuestionIndex.value < quiz.value!.questions.length - 1) {
       currentQuestionIndex.value++;
       _updateLastQuestionStatus();
     }
@@ -108,14 +114,26 @@ class ComprehensiveQuizController extends GetxController {
   }
 
   void _updateLastQuestionStatus() {
-    isLastQuestion.value =
-        currentQuestionIndex.value == quiz.value!.questions.length - 1;
+    if (quiz.value != null) {
+      isLastQuestion.value =
+          currentQuestionIndex.value == quiz.value!.questions.length - 1;
+    }
   }
 
   Future<void> submitQuiz() async {
     try {
+      if (quiz.value == null) {
+        Get.snackbar(
+          'Error',
+          'No quiz found',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       // Check if all questions are answered
-      final unansweredCount = quiz.value!.questions.length - selectedAnswers.length;
+      final unansweredCount =
+          quiz.value!.questions.length - selectedAnswers.length;
 
       if (unansweredCount > 0) {
         final confirmed = await Get.dialog<bool>(
@@ -146,7 +164,8 @@ class ComprehensiveQuizController extends GetxController {
       isLoading.value = true;
 
       // Calculate performance
-      final subjectPerformance = ComprehensiveQuizService.calculateSubjectPerformance(
+      final subjectPerformance =
+      ComprehensiveQuizService.calculateSubjectPerformance(
         quiz.value!,
         selectedAnswers,
       );
@@ -202,8 +221,102 @@ class ComprehensiveQuizController extends GetxController {
         'Failed to submit quiz: $e',
         snackPosition: SnackPosition.BOTTOM,
       );
+      print('Submit quiz error: $e');
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Helper method to get current question
+  ComprehensiveQuizQuestion? get currentQuestion {
+    if (quiz.value != null &&
+        currentQuestionIndex.value < quiz.value!.questions.length) {
+      return quiz.value!.questions[currentQuestionIndex.value];
+    }
+    return null;
+  }
+
+  /// Helper method to check if answer is selected for current question
+  bool get isCurrentQuestionAnswered {
+    if (currentQuestion != null) {
+      return selectedAnswers.containsKey(currentQuestion!.id);
+    }
+    return false;
+  }
+
+  /// Helper method to get selected answer for current question
+  int? get currentSelectedAnswer {
+    if (currentQuestion != null) {
+      return selectedAnswers[currentQuestion!.id];
+    }
+    return null;
+  }
+
+  /// Calculate progress percentage
+  double get progressPercentage {
+    if (quiz.value == null || quiz.value!.questions.isEmpty) return 0.0;
+    return (currentQuestionIndex.value + 1) / quiz.value!.questions.length;
+  }
+
+  /// Get answered questions count
+  int get answeredQuestionsCount => selectedAnswers.length;
+
+  /// Get remaining time in minutes
+  int get remainingTime {
+    if (quiz.value == null || startTime.value == null) return 0;
+    final elapsed = DateTime.now().difference(startTime.value!).inMinutes;
+    final remaining = quiz.value!.duration - elapsed;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  /// Check if time is up
+  bool get isTimeUp {
+    if (quiz.value == null || startTime.value == null) return false;
+    final elapsed = DateTime.now().difference(startTime.value!).inMinutes;
+    return elapsed >= quiz.value!.duration;
+  }
+
+  /// Navigate to specific question
+  void goToQuestion(int index) {
+    if (quiz.value != null &&
+        index >= 0 &&
+        index < quiz.value!.questions.length) {
+      currentQuestionIndex.value = index;
+      _updateLastQuestionStatus();
+    }
+  }
+
+  /// Clear answer for current question
+  void clearCurrentAnswer() {
+    if (currentQuestion != null) {
+      selectedAnswers.remove(currentQuestion!.id);
+    }
+  }
+
+  /// Get questions by subject
+  List<ComprehensiveQuizQuestion> getQuestionsBySubject(String subjectId) {
+    if (quiz.value == null) return [];
+    return quiz.value!.questions
+        .where((q) => q.subjectId == subjectId)
+        .toList();
+  }
+
+  /// Get subject progress (answered/total)
+  Map<String, String> getSubjectProgress(String subjectId) {
+    final subjectQuestions = getQuestionsBySubject(subjectId);
+    final answeredCount = subjectQuestions
+        .where((q) => selectedAnswers.containsKey(q.id))
+        .length;
+
+    return {
+      'answered': answeredCount.toString(),
+      'total': subjectQuestions.length.toString(),
+    };
+  }
+
+  @override
+  void onClose() {
+    // Clean up if needed
+    super.onClose();
   }
 }
