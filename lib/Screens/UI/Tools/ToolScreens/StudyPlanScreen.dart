@@ -207,7 +207,55 @@ class StudyPlanScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+          // Right after the purple quiz results container
+          const SizedBox(height: 16),
 
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Get.dialog(
+                  AlertDialog(
+                    title: const Text('Retry Comprehensive Quiz?'),
+                    content: const Text(
+                      'This will start a new comprehensive quiz. Your current results will be saved.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Get.back();
+                          Get.toNamed('/comprehensive-quiz');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B5CF6),
+                        ),
+                        child: const Text('Start New Quiz'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              icon: const Icon(Icons.refresh, size: 20),
+              label: const Text(
+                'Retry Comprehensive Quiz',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF8B5CF6),
+                side: const BorderSide(color: Color(0xFF8B5CF6), width: 2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
           const Text(
             'Subject Performance',
             style: TextStyle(

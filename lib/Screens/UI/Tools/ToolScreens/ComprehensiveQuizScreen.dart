@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../ToolControllers/ComprehensiveQuizController.dart';
-
+import '../ToolControllers/StudyPlanController.dart';
 
 class ComprehensiveQuizScreen extends StatelessWidget {
   const ComprehensiveQuizScreen({Key? key}) : super(key: key);
@@ -167,7 +167,7 @@ class ComprehensiveQuizScreen extends StatelessWidget {
                     child: Text(
                       currentQuestion.subjectName,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 8,
                         color: Color(0xFF8B5CF6),
                         fontWeight: FontWeight.w600,
                       ),
@@ -505,13 +505,63 @@ class ComprehensiveQuizScreen extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          // Action Buttons
+          // ✅ ADDED: Retry Quiz Button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                // Show confirmation dialog
+                Get.dialog(
+                  AlertDialog(
+                    title: const Text('Retry Comprehensive Quiz?'),
+                    content: const Text(
+                      'This will start a new quiz attempt. Your previous results will be saved.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Get.back(); // Close dialog
+                          controller.retryQuiz(); // Retry the quiz
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B5CF6),
+                        ),
+                        child: const Text('Start New Quiz'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text(
+                'Retry Comprehensive Quiz',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF8B5CF6),
+                side: const BorderSide(color: Color(0xFF8B5CF6), width: 2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Generate AI Study Plan button
           SizedBox(
             width: double.infinity,
             height: 56,
             child: ElevatedButton.icon(
               onPressed: () {
                 Get.back();
+                Get.delete<StudyPlanController>();
                 Get.toNamed('/study-plan');
               },
               style: ElevatedButton.styleFrom(
@@ -528,7 +578,10 @@ class ComprehensiveQuizScreen extends StatelessWidget {
               ),
             ),
           ),
+
           const SizedBox(height: 12),
+
+          // Back to Home button
           SizedBox(
             width: double.infinity,
             height: 56,

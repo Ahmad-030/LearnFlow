@@ -5,6 +5,7 @@ import '../../../../Model/ComprehensiveQuizModel.dart';
 import '../../../../Model/SubjectModel.dart';
 import '../../../../Services/ComprehensiveQuizService.dart';
 import '../../../../Services/CssSubjectService.dart';
+import 'StudyPlanController.dart';
 
 class ComprehensiveQuizController extends GetxController {
   final _auth = FirebaseAuth.instance;
@@ -132,8 +133,7 @@ class ComprehensiveQuizController extends GetxController {
       }
 
       // Check if all questions are answered
-      final unansweredCount =
-          quiz.value!.questions.length - selectedAnswers.length;
+      final unansweredCount = quiz.value!.questions.length - selectedAnswers.length;
 
       if (unansweredCount > 0) {
         final confirmed = await Get.dialog<bool>(
@@ -164,8 +164,7 @@ class ComprehensiveQuizController extends GetxController {
       isLoading.value = true;
 
       // Calculate performance
-      final subjectPerformance =
-      ComprehensiveQuizService.calculateSubjectPerformance(
+      final subjectPerformance = ComprehensiveQuizService.calculateSubjectPerformance(
         quiz.value!,
         selectedAnswers,
       );
@@ -213,15 +212,64 @@ class ComprehensiveQuizController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
+
+      // Wait a moment then auto-navigate to study plan
+      await Future.delayed(const Duration(seconds: 2));
+
+      // Clear the StudyPlanController to force refresh
+      Get.delete<StudyPlanController>();
+
+      // Navigate to study plan screen
+      Get.offAllNamed('/study-plan');
 
     } catch (e) {
       Get.snackbar(
         'Error',
         'Failed to submit quiz: $e',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
       print('Submit quiz error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Retry the comprehensive quiz
+  Future<void> retryQuiz() async {
+    try {
+      isLoading.value = true;
+
+      // Reset all quiz state
+      selectedAnswers.clear();
+      currentQuestionIndex.value = 0;
+      isQuizCompleted.value = false;
+      currentAttempt.value = null;
+      startTime.value = null;
+
+      // Generate a new quiz
+      await generateQuiz();
+
+      Get.snackbar(
+        'New Quiz Started',
+        'Good luck with your new attempt!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to start new quiz: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      print('Retry quiz error: $e');
     } finally {
       isLoading.value = false;
     }

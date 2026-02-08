@@ -16,7 +16,7 @@ class StudyPlanController extends GetxController {
   final _auth = FirebaseAuth.instance;
 
   // Replace with your actual API key
-  static const String GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
+  static const String GEMINI_API_KEY = 'AIzaSyBzsZ6PdsVtb6SaSaPKHR55fM97646TxMo';
 
   var isLoading = false.obs;
   var hasCompletedQuiz = false.obs;
@@ -142,7 +142,7 @@ class StudyPlanController extends GetxController {
   Future<String> _generateAIStudyPlan(String performanceData) async {
     try {
       final model = GenerativeModel(
-        model: 'gemini-pro',
+         model: 'gemini-2.0-flash',
         apiKey: GEMINI_API_KEY,
       );
 
