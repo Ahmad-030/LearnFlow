@@ -19,10 +19,17 @@ class ToolsController extends GetxController {
       'route': '/quiz-generator',
     },
     {
+      'title': 'AI Study Plan',
+      'description': 'Personalized 30-day study schedule',
+      'icon': Icons.calendar_today,
+      'color': const Color(0xFF8B5CF6),
+      'route': '/study-plan',
+    },
+    {
       'title': 'Chat with LearnFlow',
       'description': 'Get help and guidance from AI',
       'icon': Icons.chat_bubble_outline,
-      'color': const Color(0xFF8B5CF6),
+      'color': const Color(0xFFF59E0B),
       'route': '/chat',
     },
   ].obs;

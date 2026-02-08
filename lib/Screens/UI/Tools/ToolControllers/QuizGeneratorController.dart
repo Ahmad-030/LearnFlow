@@ -20,13 +20,13 @@ class QuizGeneratorController extends GetxController {
   late final GenerativeModel model;
 
   // TODO: Replace with your actual Gemini API key
-  static const String GEMINI_API_KEY = 'AIzaSyABC123def456GHI789jkl';
+  static const String GEMINI_API_KEY = 'AIzaSyBzsZ6PdsVtb6SaSaPKHR55fM97646TxMo';
 
   @override
   void onInit() {
     super.onInit();
     model = GenerativeModel(
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       apiKey: GEMINI_API_KEY,
     );
   }

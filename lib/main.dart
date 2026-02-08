@@ -4,7 +4,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:learn_flow/BottomNavigation/MainNavigation.dart';
-
 import 'Screens/AuthScreens/AuthController.dart';
 import 'Screens/AuthScreens/ForgetPassScreen.dart';
 import 'Screens/AuthScreens/LoginScreen.dart';
@@ -13,9 +12,9 @@ import 'Screens/OnboardingScreen/Onboarding_Screen.dart';
 import 'Screens/SplashScreen/Splash_Screen.dart';
 import 'Screens/UI/Enrollment_Screen.dart';
 import 'Screens/UI/Home/SubjectDetailScreen.dart';
-
 import 'Screens/UI/Tools/ToolScreens/ChatScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/QuizGeneratorScreen.dart';
+import 'Screens/UI/Tools/ToolScreens/StudyPlanScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/SummarizerScreen.dart';
 import 'Screens/UI/Tools/ToolScreens/ToolsScreen.dart';
 import 'newscreens/DatabaseSeedService.dart';
@@ -82,14 +81,14 @@ class LearnFlowApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
       initialBinding: InitialBinding(),
-      home: const EnrollmentScreen(
+      home: const SplashScreen(
 
       ),
       defaultTransition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
 
-      // GetX Routes
       getPages: [
+        GetPage(name: '/study-plan', page: () => const StudyPlanScreen()),
         GetPage(
           name: '/splash',
           page: () => const SplashScreen(),
@@ -130,7 +129,6 @@ class LearnFlowApp extends StatelessWidget {
           page: () => const SubjectDetailsScreen(),
           transition: Transition.rightToLeft,
         ),
-        // Quiz Routes
         GetPage(
           name: '/quiz-list',
           page: () => const QuizListScreen(),
@@ -146,7 +144,7 @@ class LearnFlowApp extends StatelessWidget {
           page: () => const QuizReviewScreen(),
           transition: Transition.rightToLeft,
         ),
-        // Tools Routes
+
         GetPage(name: '/tools', page: () => const ToolsScreen()),
         GetPage(name: '/summarizer', page: () => const SummarizerScreen()),
         GetPage(name: '/quiz-generator', page: () => const QuizGeneratorScreen()),

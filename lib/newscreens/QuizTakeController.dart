@@ -9,7 +9,7 @@ import '../Services/QuizService.dart';
 import '../Widgets/Custom_Toast.dart';
 import '../Screens/UI/Dashboard/DashboardScreen.dart';
 import '../Screens/UI/Home/SubjectDetailScreen.dart';
-import 'QuizListController.dart';
+import '../newscreens/QuizListController.dart';
 
 class QuizTakeController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -129,8 +129,8 @@ class QuizTakeController extends GetxController {
       await QuizService.saveQuizAttempt(attempt);
       print('Quiz attempt saved successfully');
 
-      // Wait for Firestore to complete write
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // IMPORTANT: Wait for Firestore to complete write and trigger updates
+      await Future.delayed(const Duration(milliseconds: 2000));
 
       // Force refresh all controllers
       await _forceRefreshAllControllers();
@@ -147,18 +147,22 @@ class QuizTakeController extends GetxController {
     }
   }
 
-  // Enhanced method to force refresh all controllers
+  // FIXED: Enhanced method to force refresh all controllers
   Future<void> _forceRefreshAllControllers() async {
     try {
       print('Force refreshing all controllers...');
+
+      // IMPORTANT: Wait for Firestore to propagate changes
+      await Future.delayed(const Duration(milliseconds: 1500));
 
       // Refresh HomeController
       if (Get.isRegistered<HomeController>()) {
         try {
           final homeController = Get.find<HomeController>();
           print('Refreshing HomeController...');
-          homeController.refreshData();
+          await homeController.loadEnrolledSubjects(); // CHANGED: Using public method
           homeController.update();
+          print('HomeController refreshed successfully');
         } catch (e) {
           print('Error refreshing HomeController: $e');
         }
@@ -169,8 +173,9 @@ class QuizTakeController extends GetxController {
         try {
           final dashboardController = Get.find<DashboardController>();
           print('Refreshing DashboardController...');
-          dashboardController.refreshData();
+          await dashboardController.loadDashboardData(); // CHANGED: Using public method
           dashboardController.update();
+          print('DashboardController refreshed successfully');
         } catch (e) {
           print('Error refreshing DashboardController: $e');
         }
@@ -183,6 +188,7 @@ class QuizTakeController extends GetxController {
           print('Refreshing SubjectDetailController...');
           await subjectController.refreshProgress();
           subjectController.update();
+          print('SubjectDetailController refreshed successfully');
         } catch (e) {
           print('Error refreshing SubjectDetailController: $e');
         }
@@ -195,6 +201,7 @@ class QuizTakeController extends GetxController {
           print('Refreshing QuizListController...');
           await quizListController.loadQuizAttempts();
           quizListController.update();
+          print('QuizListController refreshed successfully');
         } catch (e) {
           print('Error refreshing QuizListController: $e');
         }

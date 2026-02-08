@@ -20,10 +20,10 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadEnrolledSubjects();
+    loadEnrolledSubjects(); // CHANGED: removed underscore
   }
 
-  Future<void> _loadEnrolledSubjects() async {
+  Future<void> loadEnrolledSubjects() async { // CHANGED: removed underscore to make it public
     try {
       isLoading.value = true;
       final user = _auth.currentUser;
@@ -66,7 +66,7 @@ class HomeController extends GetxController {
   }
 
   void refreshData() {
-    _loadEnrolledSubjects();
+    loadEnrolledSubjects(); // CHANGED: removed underscore
   }
 }
 

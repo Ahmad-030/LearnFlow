@@ -21,10 +21,10 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadDashboardData();
+    loadDashboardData(); // CHANGED: removed underscore
   }
 
-  Future<void> _loadDashboardData() async {
+  Future<void> loadDashboardData() async { // CHANGED: removed underscore to make it public
     try {
       isLoading.value = true;
       final user = _auth.currentUser;
@@ -206,7 +206,7 @@ class DashboardController extends GetxController {
   }
 
   void refreshData() {
-    _loadDashboardData();
+    loadDashboardData(); // CHANGED: removed underscore
   }
 
   Color getColorFromHex(String hexColor) {
